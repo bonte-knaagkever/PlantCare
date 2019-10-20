@@ -4,6 +4,7 @@
  Author:	ihave
 */
 #include <Wire.h>
+#include <LiquidCrystal.h>
 #include <LiquidCrystal_I2C.h>
 #include <NewPing.h>
 
@@ -58,17 +59,47 @@ void lcdprint(int x, int y, String string) {
 	lcd.print(string);
 }
 
-void LCDbacklight() {
+void lcdclear(int line) {
+	lcd.setCursor(0, line);
+	for (int i = 0; i < 16; ++i)
+	{
+		lcd.write(' ');
+	}
+}
+
+void LCDcontents() {
+	// Draw animated guy
+	lcdwrite(6, 0, 0);
+	lcdwrite(9, 0, 1);
+	delay(100);
+	lcdwrite(6, 0, 1);
+	lcdwrite(9, 0, 0);
+	// Draw chars
+	lcdwrite(0, 0, rand());
+	lcdwrite(15, 0, rand());
+	delay(100);
+	lcdwrite(0, 1, rand());
+	lcdwrite(15, 1, rand());
+}
+
+void LCDactivation() {
 	distance = sonar.ping_cm();
 	if (distance <= 15 && distance != 0) {
 		Serial.println(distance + String(" <= 15"));
 		lcd.backlight();
+		LCDcontents();
 		time = millis();
+	}
+	else if((millis() < time + keepawake)) {
+		LCDcontents();
 	}
 	if (millis() > time + keepawake) { // Turn off LCD after specified amout of time
 		lcd.noBacklight();
+		lcdclear(0);
+		lcdclear(1);
 	};
 	prevdistance = distance;
+	delay(100);
 }
 
 // The setup function runs once when you press reset or power the board
@@ -88,17 +119,5 @@ void setup() {
 
 // The loop function runs over and over again until power down or reset
 void loop() {
-	LCDbacklight();
-	// Draw animated guy
-	lcdwrite(6, 0, 0);
-	lcdwrite(9, 0, 1);
-	delay(100);
-	lcdwrite(6, 0, 1);
-	lcdwrite(9, 0, 0);
-	// Draw chars
-	lcdwrite(0, 0, rand());
-	lcdwrite(15, 0, rand());
-	delay(100);
-	lcdwrite(0, 1, rand());
-	lcdwrite(15, 1, rand());
+	LCDactivation();
 }
