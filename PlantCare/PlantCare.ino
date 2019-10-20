@@ -69,15 +69,15 @@ void lcdclear(int line) {
 
 void LCDcontents() {
 	// Draw animated guy
+	delay(100);
 	lcdwrite(6, 0, 0);
 	lcdwrite(9, 0, 1);
-	delay(100);
+	delay(200);
 	lcdwrite(6, 0, 1);
 	lcdwrite(9, 0, 0);
 	// Draw chars
 	lcdwrite(0, 0, rand());
 	lcdwrite(15, 0, rand());
-	delay(100);
 	lcdwrite(0, 1, rand());
 	lcdwrite(15, 1, rand());
 }
