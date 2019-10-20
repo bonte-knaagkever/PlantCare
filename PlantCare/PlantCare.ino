@@ -66,7 +66,7 @@ void animchar() {
 	lcd.write(0);
 }
 
-void lcdwrites() {
+void randlcdwrites() {
 	lcd.setCursor(0, 0);
 	lcd.write(rand());
 	lcd.setCursor(15, 0);
@@ -80,5 +80,5 @@ void lcdwrites() {
 // The loop function runs over and over again until power down or reset
 void loop() {
 	animchar();
-	lcdwrites();
+	randlcdwrites();
 }
