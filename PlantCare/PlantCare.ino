@@ -11,10 +11,10 @@
 #include <NewPing.h> //Sonar https://www.youtube.com/watch?v=6F1B_N6LuKw
 
 // vars/ints
-int waterlevel;
 int temperature; //C
+int light;
 int humidity; // % RH???
-int light; 
+int soilmoisture;
 
 // Sonar sensor + LCD activation
 #define Trigger_Pin 2
@@ -93,12 +93,24 @@ void LCDcontents_static() {
 
 }
 
+void Sensors() {
+	temperature = dht.readTemperature() - 1;
+	light = 0;
+	humidity = dht.readHumidity();
+	soilmoisture = 123;
+};
+
 void LCDcontents() {
-	Serial.println("++++++++ Printing LCD Contents ++++++++");
+	if (millis() > time + 2000) {
+		//Serial.println("++++++++ Printing LCD Contents ++++++++");
+	}
 	//lcdprint(4, 1, "Fortnite");
-	lcdprint(12, 1, String((int) dht.readTemperature() - 1 /* Temp correction */));
-	lcdwrite(14, 1, 2);
-	lcdwrite(15, 1, 'C');
+	
+	if (!isnan(temperature)) {
+		//lcdprint(12, 1, String(temperature - 1 /* Temp correction */));
+		lcdwrite(14, 1, 2);
+		lcdwrite(15, 1, 'C');
+	}
 	//// Draw chars
 	//lcdwrite(0, 0, rand());
 	//lcdwrite(15, 0, rand());
@@ -128,10 +140,9 @@ void LCDwatch() {
 	//Enable LCD
 	if (distance <= 15 && distance != 0) {
 		//Serial.println(distance + String(" <= 15cm"));
-		LCDcontents();
 		time = millis();
 		lcd.backlight();
-		delay(5000);
+		LCDcontents();
 	}
 	else if (millis() < time + LCDawaketime) {
 		//LCDcontents(); //If stuff has to be constantly updated
@@ -143,7 +154,6 @@ void LCDwatch() {
 		lcd.noBacklight(); // Disabling backlight causes a slight delay
 	};
 	prevdistance = distance;
-	Scheduler.delay(200);
 }
 
 void setRBGled(int red, int green, int blue) { 
@@ -157,10 +167,6 @@ void setup() {
 	Serial.begin(9600);
 	String starttime = __TIME__;
 	Serial.println("------------------------------------------------- " + starttime + " -------------------------------------------------");
-	Serial.println("Waterlevel: " + waterlevel);
-	Serial.println("Temp: " + temperature);
-	Serial.println("Humidity: " + humidity);
-	Serial.println("Light: " + light);
 	lcd.init();
 	lcd.createChar(2, custLCDcharDegree);
 	//lcd.createChar(0, custLCDchar0);
@@ -179,8 +185,13 @@ void setup() {
 
 // The loop function runs over and over again until power down or reset
 void loop() {
-	Scheduler.startLoop(LCDwatch);
+	//Scheduler.startLoop(LCDwatch);
+	Sensors();
 	Serial.println("MAIN LOOP");
+	Serial.println(String("Temp: ") + temperature);
+	Serial.println(String("Light: ") + light);
+	Serial.println(String("Humidity: ") + humidity);
+	Serial.println(String("Soil moisture: ") + soilmoisture);
 	delay(10000);
 }
 
