@@ -16,15 +16,12 @@ int light;
 String starttime = __TIME__;
 
 // sonar
-const int
-Trigger_Pin = 2,
-Echo_Pin = 3,
-Max_Distance = 40; //cm (max 400)
+const int Trigger_Pin = 2, Echo_Pin = 3, Max_Distance = 40; //cm (max 400)
 int distance, prevdistance;
-unsigned long time = millis(), cooldown = 1000, keepawake = 5000;
+unsigned long time = millis(), cooldown = 1000, keepawake = 5000, frametime;
+static bool LCDoff;
 
 NewPing sonar(Trigger_Pin, Echo_Pin, Max_Distance);
-
 LiquidCrystal_I2C lcd(0x27, 20, 4);  // Set the LCD address to 0x27 for a 16 chars and 2 line display
 
 // Animted guy frames:
@@ -59,7 +56,7 @@ void lcdprint(int x, int y, String string) {
 	lcd.print(string);
 }
 
-void lcdclear(int line) {
+void lcdclearline(int line) {
 	lcd.setCursor(0, line);
 	for (int i = 0; i < 16; ++i)
 	{
@@ -67,19 +64,33 @@ void lcdclear(int line) {
 	}
 }
 
+void LCDcontents_static() {
+
+}
+
 void LCDcontents() {
-	// Draw animated guy
-	delay(100);
-	lcdwrite(6, 0, 0);
-	lcdwrite(9, 0, 1);
-	delay(200);
-	lcdwrite(6, 0, 1);
-	lcdwrite(9, 0, 0);
+	if (!LCDoff) {
+		lcdprint(4, 1, "Fortnite");
+	};
 	// Draw chars
 	lcdwrite(0, 0, rand());
 	lcdwrite(15, 0, rand());
 	lcdwrite(0, 1, rand());
 	lcdwrite(15, 1, rand());
+
+	// Draw animated guy
+	for (int frame = 0; millis() - time > 500; frame++) {
+		time = millis();
+		switch (frame) {
+		case (0):
+			lcdwrite(6, 0, 0);
+			lcdwrite(9, 0, 1);
+		case (1):
+			lcdwrite(6, 0, 1);
+			lcdwrite(9, 0, 0);
+		}
+		
+	}
 }
 
 void LCDactivation() {
@@ -87,19 +98,21 @@ void LCDactivation() {
 	if (distance <= 15 && distance != 0) {
 		Serial.println(distance + String(" <= 15"));
 		lcd.backlight();
-		LCDcontents();
 		time = millis();
+		LCDcontents();
+		Serial.println(lcd.status());
 	}
-	else if((millis() < time + keepawake)) {
+	else if (millis() < time + keepawake) {
 		LCDcontents();
 	}
-	if (millis() > time + keepawake) { // Turn off LCD after specified amout of time
+	else if (millis() > time + keepawake) { // Turn off LCD after specified amout of time
 		lcd.noBacklight();
-		lcdclear(0);
-		lcdclear(1);
+		lcdclearline(0);
+		lcdclearline(1);
+		LCDoff != LCDoff;
 	};
 	prevdistance = distance;
-	delay(100);
+
 }
 
 // The setup function runs once when you press reset or power the board
@@ -114,7 +127,6 @@ void setup() {
 	lcd.createChar(0, custLCDchar0);
 	lcd.createChar(1, custLCDchar1);
 	//lcd.backlight(); // or lcd.noBacklight to force off
-	lcdprint(4, 1, "Fortnite");
 };
 
 // The loop function runs over and over again until power down or reset

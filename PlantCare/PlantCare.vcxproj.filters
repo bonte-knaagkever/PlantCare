@@ -22,4 +22,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="D:\ihave\Downloads\Untitled Sketch 2_bb.png">
+      <Filter>Misc Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
