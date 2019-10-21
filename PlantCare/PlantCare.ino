@@ -17,8 +17,8 @@ String starttime = __TIME__;
 
 // sonar
 const int Trigger_Pin = 2, Echo_Pin = 3, Max_Distance = 40; //cm (max 400)
-int distance, prevdistance;
-unsigned long time = millis(), cooldown = 1000, keepawake = 5000, frametime;
+int distance, prevdistance, frame;
+unsigned long time = millis(), cooldown = 1000, keepawake = 5000, frametime = 500;
 static bool LCDoff;
 
 NewPing sonar(Trigger_Pin, Echo_Pin, Max_Distance);
@@ -78,6 +78,22 @@ void LCDcontents() {
 	lcdwrite(0, 1, rand());
 	lcdwrite(15, 1, rand());
 
+	//// Draw animated guy
+	//if (millis() - frametime < 500) {
+	//	Serial.println("ANIMATED FRAME");
+	//	switch (frame) {
+	//	case (0):
+	//		lcdwrite(6, 0, 0);
+	//		lcdwrite(9, 0, 1);
+	//	case (1):
+	//		lcdwrite(6, 0, 1);
+	//		lcdwrite(9, 0, 0);
+	//	default:
+	//		int frame = 0;
+	//	};
+	//	frame = frame++;
+	//	frametime = millis();
+	//}
 }
 
 void LCDactivation() {
@@ -93,9 +109,9 @@ void LCDactivation() {
 		LCDcontents();
 	}
 	else if (millis() > time + keepawake) { // Turn off LCD after specified amout of time
-		lcd.noBacklight();
 		lcdclearline(0);
 		lcdclearline(1);
+		lcd.noBacklight(); // Disabling backlight causes a slight delay
 		LCDoff != LCDoff;
 	};
 	prevdistance = distance;
