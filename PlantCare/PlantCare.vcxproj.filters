@@ -16,8 +16,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="PlantCare.ino">
-      <Filter>Source Files</Filter>
-    </None>
+    <None Include="PlantCare.ino" />
   </ItemGroup>
 </Project>

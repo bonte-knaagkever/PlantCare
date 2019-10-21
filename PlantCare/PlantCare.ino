@@ -78,19 +78,6 @@ void LCDcontents() {
 	lcdwrite(0, 1, rand());
 	lcdwrite(15, 1, rand());
 
-	// Draw animated guy
-	for (int frame = 0; millis() - time > 500; frame++) {
-		time = millis();
-		switch (frame) {
-		case (0):
-			lcdwrite(6, 0, 0);
-			lcdwrite(9, 0, 1);
-		case (1):
-			lcdwrite(6, 0, 1);
-			lcdwrite(9, 0, 0);
-		}
-		
-	}
 }
 
 void LCDactivation() {
