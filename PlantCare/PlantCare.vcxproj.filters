@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="PlantCare.ino" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="__vm\.PlantCare.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -26,5 +23,10 @@
     <Image Include="D:\ihave\Downloads\Untitled Sketch 2_bb.png">
       <Filter>Misc Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PlantCare.ino">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
