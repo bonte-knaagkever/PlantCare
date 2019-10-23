@@ -11,9 +11,9 @@
 #include <NewPing.h> //Sonar https://www.youtube.com/watch?v=6F1B_N6LuKw
 
 // vars/ints
-int temperature; //C
+int temperature; // 0-50°C - ±2°C
 int light;
-int humidity; // % RH???
+int humidity; // 0-100%
 int soilmoisture;
 
 // Sonar sensor + LCD activation
@@ -89,72 +89,42 @@ void lcdclearline(int line) {
 	}
 }
 
-void LCDcontents_static() {
-
-}
-
 void Sensors() {
-	temperature = dht.readTemperature() - 1;
+	temperature = dht.readTemperature();
 	light = 0;
 	humidity = dht.readHumidity();
-	soilmoisture = 123;
+	soilmoisture = 0;
 };
 
-void LCDcontents() {
-	if (millis() > time + 2000) {
-		//Serial.println("++++++++ Printing LCD Contents ++++++++");
-	}
-	//lcdprint(4, 1, "Fortnite");
-	
+void LCDcontents() {	
 	if (!isnan(temperature)) {
-		//lcdprint(12, 1, String(temperature - 1 /* Temp correction */));
-		lcdwrite(14, 1, 2);
-		lcdwrite(15, 1, 'C');
+		lcdprint(0, 0, "Temp:");
+		lcdprint(6, 0, String(temperature - 1));
+		lcdwrite(8, 0, 2);
+		lcdwrite(9, 0, 'C');
 	}
-	//// Draw chars
-	//lcdwrite(0, 0, rand());
-	//lcdwrite(15, 0, rand());
-	//lcdwrite(0, 1, rand());
-	//lcdwrite(15, 1, rand());
-
-	//// Draw animated guy
-	//if (millis() - frametime < 500) {
-	//	Serial.println("ANIMATED FRAME");
-	//	switch (frame) {
-	//	case (0):
-	//		lcdwrite(6, 0, 0);
-	//		lcdwrite(9, 0, 1);
-	//	case (1):
-	//		lcdwrite(6, 0, 1);
-	//		lcdwrite(9, 0, 0);
-	//	default:
-	//		int frame = 0;
-	//	};
-	//	frame = frame++;
-	//	frametime = millis();
-	//}	
 }
 
-void LCDwatch() {
-	distance = sonar.ping_cm();
-	//Enable LCD
-	if (distance <= 15 && distance != 0) {
-		//Serial.println(distance + String(" <= 15cm"));
-		time = millis();
-		lcd.backlight();
-		LCDcontents();
-	}
-	else if (millis() < time + LCDawaketime) {
-		//LCDcontents(); //If stuff has to be constantly updated
-	}
-	//Disable LCD
-	else if (millis() > time + LCDawaketime) {
-		lcdclearline(0);
-		lcdclearline(1);
-		lcd.noBacklight(); // Disabling backlight causes a slight delay
-	};
-	prevdistance = distance;
-}
+//void LCDwatch() {
+//	distance = sonar.ping_cm();
+//	//Enable LCD
+//	if (distance <= 15 && distance != 0) {
+//		//Serial.println(distance + String(" <= 15cm"));
+//		time = millis();
+//		lcd.backlight();
+//		LCDcontents();
+//	}
+//	else if (millis() < time + LCDawaketime) {
+//		//LCDcontents(); //If stuff has to be constantly updated
+//	}
+//	//Disable LCD
+//	else if (millis() > time + LCDawaketime) {
+//		lcdclearline(0);
+//		lcdclearline(1);
+//		lcd.noBacklight(); // Disabling backlight causes a slight delay
+//	};
+//	prevdistance = distance;
+//}
 
 void setRBGled(int red, int green, int blue) { 
 	analogWrite(R_Pin, red);
@@ -162,36 +132,38 @@ void setRBGled(int red, int green, int blue) {
 	analogWrite(B_Pin, blue);
 }
 
-// The setup function runs once when you press reset or power the board
 void setup() {
 	Serial.begin(9600);
 	String starttime = __TIME__;
-	Serial.println("------------------------------------------------- " + starttime + " -------------------------------------------------");
+	//Serial.println("---------" + starttime + "--------- "); //~~space to make it identifiable by the transfer python script~~
 	lcd.init();
 	lcd.createChar(2, custLCDcharDegree);
-	//lcd.createChar(0, custLCDchar0);
-	//lcd.createChar(1, custLCDchar1);
-	//lcd.backlight(); // or lcd.noBacklight to force off
+	lcd.backlight(); // or lcd.noBacklight to force off
 
 	//RBGled https://howtomechatronics.com/tutorials/arduino/how-to-use-a-rgb-led-with-arduino/
 	pinMode(R_Pin, OUTPUT);
 	pinMode(G_Pin, OUTPUT);
 	pinMode(B_Pin, OUTPUT);
-	setRBGled(0, 255, 0);
 
 	//DHT11
 	dht.begin();
-};
-
-// The loop function runs over and over again until power down or reset
-void loop() {
-	//Scheduler.startLoop(LCDwatch);
-	Sensors();
-	Serial.println("MAIN LOOP");
-	Serial.println(String("Temp: ") + temperature);
-	Serial.println(String("Light: ") + light);
-	Serial.println(String("Humidity: ") + humidity);
-	Serial.println(String("Soil moisture: ") + soilmoisture);
-	delay(10000);
 }
 
+void loop() {
+	//Scheduler.startLoop(LCDwatch);
+	setRBGled(0, 255, 0);
+	Sensors();
+	Serial.print("sensordata: ");
+	Serial.print(temperature);
+	Serial.print(" ");
+	Serial.print(light);
+	Serial.print(" ");
+	Serial.print(humidity);
+	Serial.print(" ");
+	Serial.print(soilmoisture);
+	Serial.println(" ");
+
+	LCDcontents();
+	setRBGled(255, 0, 0);
+	delay(10000);
+}
