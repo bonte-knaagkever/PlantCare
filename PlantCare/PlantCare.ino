@@ -10,6 +10,12 @@
 #include <LiquidCrystal_I2C.h> //lcd.<> https://www.arduinolibraries.info/libraries/liquid-crystal-i2-c
 #include <NewPing.h> //Sonar https://www.youtube.com/watch?v=6F1B_N6LuKw
 
+// Sensor ints
+int temperature; // 0-50°C - ±2°C
+int light;
+int humidity; // 0-100%
+int soilmoisture;
+
 // RGBled
 #define R_Pin 7
 #define G_Pin 6
@@ -20,18 +26,8 @@
 #define DHT_Type DHT11
 DHT dht(DHT_Pin, DHT_Type);
 
-int temperature; // 0-50°C - ±2°C
-int light;
-int humidity; // 0-100%
-int soilmoisture;
-void Sensors() {
-	temperature = dht.readTemperature();
-	light = 0;
-	humidity = dht.readHumidity();
-	soilmoisture = 0;
-};
-
-
+// LCD
+LiquidCrystal_I2C lcd(0x27, 20, 4);  // Set the LCD address to 0x27 for a 16 chars and 2 line display
 byte custLCDcharDegree[] = { // https://maxpromer.github.io/LCD-Character-Creator/
   B00000,
   B01110,
@@ -42,7 +38,14 @@ byte custLCDcharDegree[] = { // https://maxpromer.github.io/LCD-Character-Creato
   B00000,
   B00000
 };
-LiquidCrystal_I2C lcd(0x27, 20, 4);  // Set the LCD address to 0x27 for a 16 chars and 2 line display
+
+void Sensors() {
+	temperature = dht.readTemperature() - 1;
+	light = 0;
+	humidity = dht.readHumidity();
+	soilmoisture = 0;
+};
+
 void lcdwrite(int x, int y, int character) { // for single characters
 	lcd.setCursor(x, y);
 	lcd.write(character);
@@ -64,7 +67,7 @@ void lcdclearline(int line) {
 void LCDcontents() {	
 	if (!isnan(temperature)) {
 		lcdprint(0, 0, "Temp:");
-		lcdprint(6, 0, String(temperature - 1));
+		lcdprint(6, 0, String(temperature));
 		lcdwrite(8, 0, 2);
 		lcdwrite(9, 0, 'C');
 	}
@@ -108,8 +111,8 @@ void setRBGled(int red, int green, int blue) {
 
 void setup() {
 	Serial.begin(9600);
-	String starttime = __TIME__;
-	//Serial.println("---------" + starttime + "--------- "); //~~space to make it identifiable by the transfer python script~~
+
+	//LCD
 	lcd.init();
 	lcd.createChar(2, custLCDcharDegree);
 	lcd.backlight(); // or lcd.noBacklight to force off
