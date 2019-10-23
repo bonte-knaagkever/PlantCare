@@ -10,24 +10,6 @@
 #include <LiquidCrystal_I2C.h> //lcd.<> https://www.arduinolibraries.info/libraries/liquid-crystal-i2-c
 #include <NewPing.h> //Sonar https://www.youtube.com/watch?v=6F1B_N6LuKw
 
-// vars/ints
-int temperature; // 0-50°C - ±2°C
-int light;
-int humidity; // 0-100%
-int soilmoisture;
-
-// Sonar sensor + LCD activation
-#define Trigger_Pin 2
-#define Echo_Pin 3
-#define Max_Distance 40 //cm (max 400)
-int distance,
-prevdistance,
-time = millis(),
-LCDawaketime = 5000;
-NewPing sonar(Trigger_Pin, Echo_Pin, Max_Distance);
-bool LCDoff, ContentsDisplayed = false;
-LiquidCrystal_I2C lcd(0x27, 20, 4);  // Set the LCD address to 0x27 for a 16 chars and 2 line display
-
 // RGBled
 #define R_Pin 7
 #define G_Pin 6
@@ -38,27 +20,17 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);  // Set the LCD address to 0x27 for a 16 cha
 #define DHT_Type DHT11
 DHT dht(DHT_Pin, DHT_Type);
 
-//// Animted guy frames:
-//byte custLCDchar0[] = { // https://maxpromer.github.io/LCD-Character-Creator/
-//  B00100,
-//  B01110,
-//  B00100,
-//  B01110,
-//  B10101,
-//  B00100,
-//  B01010,
-//  B01010
-//};
-//byte custLCDchar1[] = {
-//  B00000,
-//  B00100,
-//  B01110,
-//  B00100,
-//  B01110,
-//  B10101,
-//  B00100,
-//  B01010
-//};
+int temperature; // 0-50°C - ±2°C
+int light;
+int humidity; // 0-100%
+int soilmoisture;
+void Sensors() {
+	temperature = dht.readTemperature();
+	light = 0;
+	humidity = dht.readHumidity();
+	soilmoisture = 0;
+};
+
 
 byte custLCDcharDegree[] = { // https://maxpromer.github.io/LCD-Character-Creator/
   B00000,
@@ -70,7 +42,7 @@ byte custLCDcharDegree[] = { // https://maxpromer.github.io/LCD-Character-Creato
   B00000,
   B00000
 };
-
+LiquidCrystal_I2C lcd(0x27, 20, 4);  // Set the LCD address to 0x27 for a 16 chars and 2 line display
 void lcdwrite(int x, int y, int character) { // for single characters
 	lcd.setCursor(x, y);
 	lcd.write(character);
@@ -89,13 +61,6 @@ void lcdclearline(int line) {
 	}
 }
 
-void Sensors() {
-	temperature = dht.readTemperature();
-	light = 0;
-	humidity = dht.readHumidity();
-	soilmoisture = 0;
-};
-
 void LCDcontents() {	
 	if (!isnan(temperature)) {
 		lcdprint(0, 0, "Temp:");
@@ -105,6 +70,15 @@ void LCDcontents() {
 	}
 }
 
+// Sonar sensor + LCD activation
+//#define Trigger_Pin 2
+//#define Echo_Pin 3
+//#define Max_Distance 40 //cm (max 400)
+//int distance,
+//prevdistance,
+//time = millis(),
+//LCDawaketime = 5000;
+//NewPing sonar(Trigger_Pin, Echo_Pin, Max_Distance);
 //void LCDwatch() {
 //	distance = sonar.ping_cm();
 //	//Enable LCD
