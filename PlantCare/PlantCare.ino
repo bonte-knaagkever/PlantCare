@@ -9,6 +9,7 @@
 #include <Wire.h> //communicate with I2C / TWI devices https://www.arduino.cc/en/reference/wire
 #include <LiquidCrystal_I2C.h> //lcd.<> https://www.arduinolibraries.info/libraries/liquid-crystal-i2-c
 #include <NewPing.h> //Sonar https://www.youtube.com/watch?v=6F1B_N6LuKw
+#include <EEPROM.h>
 
 // Sensor ints
 int temperature; // 0-50°C - ±2°C
@@ -16,19 +17,24 @@ int light;
 int humidity; // 0-100%
 int soilmoisture;
 
+int plants = 5;
+
 // RGBled
-#define R_Pin 7
-#define G_Pin 6
-#define B_Pin 5
+constexpr auto R_Pin = 7;
+constexpr auto G_Pin = 6;
+constexpr auto B_Pin = 5;
 
 // Temp/humidity sensor (DHT11)
-#define DHT_Pin 8
-#define DHT_Type DHT11
-DHT dht(DHT_Pin, DHT_Type);
+const int DHT_Pin[5] = { 8, 9, 10, 11, 12 };
+const int DHT_Type = DHT11;
+DHT* dhtArray[5]; //max 5 DHT sensors
+
+// LDR
+constexpr auto LDR_Pin = 3;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 20, 4);  // Set the LCD address to 0x27 for a 16 chars and 2 line display
-byte custLCDcharDegree[] = { // https://maxpromer.github.io/LCD-Character-Creator/
+byte LCDcharDegree[] = { // https://maxpromer.github.io/LCD-Character-Creator/
   B00000,
   B01110,
   B01010,
@@ -38,11 +44,21 @@ byte custLCDcharDegree[] = { // https://maxpromer.github.io/LCD-Character-Creato
   B00000,
   B00000
 };
+byte LCDcharOKHand[] = {
+  B00010,
+  B00110,
+  B00111,
+  B01111,
+  B10011,
+  B11011,
+  B01110,
+  B01110
+};
 
-void Sensors() {
-	temperature = dht.readTemperature() - 1;
-	light = 0;
-	humidity = dht.readHumidity();
+void Sensors(int plantnr) {
+	temperature = dhtArray[plantnr]->readTemperature() - 1;
+	light = analogRead(LDR_Pin);
+	humidity = dhtArray[plantnr]->readHumidity();
 	soilmoisture = 0;
 };
 
@@ -65,11 +81,13 @@ void lcdclearline(int line) {
 }
 
 void LCDcontents() {	
-	if (!isnan(temperature)) {
+	if (!(temperature = 0)) { // only print if temp is not 0 (readfailure)
 		lcdprint(0, 0, "Temp:");
 		lcdprint(6, 0, String(temperature));
-		lcdwrite(8, 0, 2);
+		lcdwrite(8, 0, 0);
 		lcdwrite(9, 0, 'C');
+		lcdprint(0, 1, "Plant is");
+		lcdwrite(9, 1, 1);
 	}
 }
 
@@ -91,7 +109,7 @@ void LCDcontents() {
 //		lcd.backlight();
 //		LCDcontents();
 //	}
-//	else if (millis() < time + LCDawaketime) {
+//	else if (millis() <= time + LCDawaketime) {
 //		//LCDcontents(); //If stuff has to be constantly updated
 //	}
 //	//Disable LCD
@@ -109,12 +127,31 @@ void setRBGled(int red, int green, int blue) {
 	analogWrite(B_Pin, blue);
 }
 
+void SerialWatch() {
+	if (String(Serial.read()) == "setting:") { //https://forum.arduino.cc/index.php?topic=78392.0
+		//Serial.print();
+		setRBGled(0, 255, 0);
+		lcdprint(0, 0, String(Serial.read()));
+	};
+	Serial.setTimeout(100);
+}
+
 void setup() {
 	Serial.begin(9600);
+	SerialWatch();
+	//plants = EEPROM.read(0);
+
+	//dhtArray = new DHT[7];
+	//for (unsigned int i = 0; i < sizeof(DHT_Pin); i++) {
+	//	dhtArray[i] = new dht(DHT_Pin[i], DHT_Type);
+	//};
 
 	//LCD
 	lcd.init();
-	lcd.createChar(2, custLCDcharDegree);
+	lcdclearline(0);
+	lcdclearline(1);
+	lcd.createChar(0, LCDcharDegree);
+	lcd.createChar(1, LCDcharOKHand);
 	lcd.backlight(); // or lcd.noBacklight to force off
 
 	//RBGled https://howtomechatronics.com/tutorials/arduino/how-to-use-a-rgb-led-with-arduino/
@@ -123,24 +160,54 @@ void setup() {
 	pinMode(B_Pin, OUTPUT);
 
 	//DHT11
-	dht.begin();
+	for (int i = 0; i < 5; i++) {
+		//Serial.print(i), Serial.print("\n");
+		dhtArray[i] = new DHT(DHT_Pin[i], DHT_Type); //define a new DHT at pin 11;
+		dhtArray[i]->begin();
+	};
 }
+
+unsigned long lasttime = 0;
 
 void loop() {
 	//Scheduler.startLoop(LCDwatch);
-	setRBGled(0, 255, 0);
-	Sensors();
-	Serial.print("sensordata: ");
-	Serial.print(temperature);
-	Serial.print(" ");
-	Serial.print(light);
-	Serial.print(" ");
-	Serial.print(humidity);
-	Serial.print(" ");
-	Serial.print(soilmoisture);
-	Serial.println(" ");
+	SerialWatch();
+	if (millis() >= lasttime + 10000) {
+		lasttime = millis();
+		//setRBGled(0, 255, 0);
+		Sensors(0);
+		
+		Serial.print("sensordata:");
+		Serial.print(" ");
+		Serial.print(plantnr);
+		Serial.print(" ");
+		Serial.print(temperature);
+		Serial.print(" ");
+		Serial.print(light);
+		Serial.print(" ");
+		Serial.print(humidity);
+		Serial.print(" ");
+		Serial.print(soilmoisture);
+		Serial.println();
+		
+		//for (unsigned int plantnr = 0; plantnr < sizeof(plants); plantnr++) {
+		//	Sensors(plantnr);
+		//	Serial.print("sensordata:");
+		//	Serial.print(" ");
+		//	Serial.print(plantnr);
+		//	Serial.print(" ");
+		//	Serial.print(temperature);
+		//	Serial.print(" ");
+		//	Serial.print(light);
+		//	Serial.print(" ");
+		//	Serial.print(humidity);
+		//	Serial.print(" ");
+		//	Serial.print(soilmoisture);
+		//	Serial.println();
+		//}
 
-	LCDcontents();
-	setRBGled(255, 0, 0);
-	delay(10000);
+		//LCDcontents();
+		//setRBGled(255, 0, 0);
+	}
+	delay(900);
 }
