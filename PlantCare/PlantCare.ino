@@ -81,7 +81,7 @@ void lcdclearline(int line) {
 }
 
 void LCDcontents() {	
-	if (!(temperature = 0)) { // only print if temp is not 0 (readfailure)
+	if (!isnan(temperature)) { // only print if temp is not 0 (readfailure)
 		lcdprint(0, 0, "Temp:");
 		lcdprint(6, 0, String(temperature));
 		lcdwrite(8, 0, 0);
@@ -129,7 +129,6 @@ void setRBGled(int red, int green, int blue) {
 
 void SerialWatch() {
 	if (String(Serial.read()) == "setting:") { //https://forum.arduino.cc/index.php?topic=78392.0
-		//Serial.print();
 		setRBGled(0, 255, 0);
 		lcdprint(0, 0, String(Serial.read()));
 	};
@@ -139,6 +138,7 @@ void SerialWatch() {
 void setup() {
 	Serial.begin(9600);
 	SerialWatch();
+	delay(500); // wait for data if any
 	//plants = EEPROM.read(0);
 
 	//dhtArray = new DHT[7];
@@ -177,18 +177,18 @@ void loop() {
 		//setRBGled(0, 255, 0);
 		Sensors(0);
 		
-		Serial.print("sensordata:");
-		Serial.print(" ");
-		Serial.print(plantnr);
-		Serial.print(" ");
-		Serial.print(temperature);
-		Serial.print(" ");
-		Serial.print(light);
-		Serial.print(" ");
-		Serial.print(humidity);
-		Serial.print(" ");
-		Serial.print(soilmoisture);
-		Serial.println();
+		//Serial.print("sensordata:");
+		//Serial.print(" ");
+		//Serial.print(plantnr);
+		//Serial.print(" ");
+		//Serial.print(temperature);
+		//Serial.print(" ");
+		//Serial.print(light);
+		//Serial.print(" ");
+		//Serial.print(humidity);
+		//Serial.print(" ");
+		//Serial.print(soilmoisture);
+		//Serial.println();
 		
 		//for (unsigned int plantnr = 0; plantnr < sizeof(plants); plantnr++) {
 		//	Sensors(plantnr);

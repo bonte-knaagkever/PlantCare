@@ -6,7 +6,7 @@ import os
 
 arduino = serial.Serial("COM7",9600)
 print("COM connection success!")
-serialread = arduino.readline() #read once
+#serialread = arduino.readline() #read once
 time.sleep(1)
 
 def sendserial():
@@ -34,13 +34,17 @@ def sendserial():
                     if line.startswith(str(row[0])):
                         if int(line.strip("\n").split('=', 1)[1]) < row[1]:
                             with open("lastmodified.txt", 'w') as f:
-                                f.write(line.replace(line, ""))
-                                f.write(str(row[0]) + "=" + str(row[1]) + "\n")
+                                for row in records:
+                                    f.write(line.replace(line, ""))
+                                    f.write(str(row[0]) + "=" + str(row[1]) + "\n")
                             f.close()
                             serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
                             arduino.write(serialsend.encode())
                             print("Sent serial data" + serialsend)
                             print(line.strip("\n").split('=', 1))
+                            with open("lastmodified.txt", 'r') as f:
+                                lines = f.readlines()
+                            f.close()
             else:
                 with open("lastmodified.txt", 'a') as f:
                     f.write(str(row[0]) + "=" + str(row[1]) + "\n")
@@ -48,7 +52,7 @@ def sendserial():
                 serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
                 arduino.write(serialsend.encode())
                 print("Sent serial data" + serialsend)
-            #time.sleep(0.1)
+            #time.sleep(0.5)
     cursor.close()
 
 def readserial():
