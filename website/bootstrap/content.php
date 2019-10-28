@@ -82,7 +82,7 @@
 		<option disabled selected value="">- selecteer plant -</option>
 		<?php
 			include('./connect-sql.php');
-			$dbplantnames = "SELECT plantname FROM `settings`";
+			$dbplantnames = "SELECT plantname FROM `settings` where plantname <> ''";
 			$dbplantnamesquery = mysqli_query($dbconn, $dbplantnames);
 
 			while ($plantname = mysqli_fetch_array($dbplantnamesquery, MYSQLI_ASSOC)) {

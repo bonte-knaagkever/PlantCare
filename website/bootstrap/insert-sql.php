@@ -20,7 +20,7 @@ function insert() {
 
 	$dbcheckplantname = "SELECT * FROM `settings` WHERE plantname = '$plant_name' ";
 
-	$dbcheckIDexist = "SELECT * FROM `settings` WHERE lastmodified = '0' LIMIT 1";
+	$dbcheckIDexist = "SELECT * FROM `settings` WHERE lastmodified = '0'";
 
 	$dbcheckrownumbers = "SELECT * FROM `settings`";
 	$dbcheckrownumbersquery = mysqli_num_rows(mysqli_query($dbconn, $dbcheckrownumbers));
@@ -46,7 +46,7 @@ function insert() {
 	}
 
 	if(mysqli_query($dbconn, $dbsend)){
-	    echo "Records added successfully.";
+	    echo "Records added/edited successfully.";
 	} else {
 	    echo "ERROR: Could not execute $dbsend. " . mysqli_error($dbconn);
 	}
@@ -64,7 +64,7 @@ function remove() {
 	$dbclear = "UPDATE settings SET plantname = '', lastmodified = 'NULL', temperature = '', light = '', humidity = '', soilmoisture = '' WHERE plantname = '$plant_name' ";
 
 	if(mysqli_query($dbconn, $dbclear)) {
-        echo "Records added successfully.";
+        echo "Records cleared successfully.";
     } else {
         echo "ERROR: Could not execute $dbclear. " . mysqli_error($dbconn);
     }

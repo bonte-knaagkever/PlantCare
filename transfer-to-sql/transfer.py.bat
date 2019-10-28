@@ -1,0 +1,2 @@
+python transfer.py
+pause

@@ -113,6 +113,7 @@ void SerialWatch() {
 
 void setup() {
 	Serial.begin(9600);
+	Serial.print("START");
 
 	SerialWatch();
 	setRBGled(0, 255, 0);
