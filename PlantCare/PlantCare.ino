@@ -6,9 +6,9 @@
 
 #include <Cth.h>
 #include <DHT.h> //temp/humidity http://www.circuitbasics.com/how-to-set-up-the-dht11-humidity-sensor-on-an-arduino/
+#include <NewPing.h> //Sonar https://www.youtube.com/watch?v=6F1B_N6LuKw
 #include <Wire.h> //communicate with I2C / TWI devices https://www.arduino.cc/en/reference/wire
 #include <LiquidCrystal_I2C.h> //lcd.<> https://www.arduinolibraries.info/libraries/liquid-crystal-i2-c
-#include <NewPing.h> //Sonar https://www.youtube.com/watch?v=6F1B_N6LuKw
 #include <EEPROM.h>
 
 // Sensor ints
@@ -62,35 +62,6 @@ void Sensors(int plantnr) {
 	soilmoisture = 0;
 };
 
-void lcdwrite(int x, int y, int character) { // for single characters
-	lcd.setCursor(x, y);
-	lcd.write(character);
-}
-
-void lcdprint(int x, int y, String string) { // for strings
-	lcd.setCursor(x, y);
-	lcd.print(string);
-}
-
-void lcdclearline(int line) {
-	lcd.setCursor(0, line);
-	for (int i = 0; i < 16; ++i)
-	{
-		lcd.write(' ');
-	}
-}
-
-void LCDcontents() {	
-	if (!isnan(temperature)) { // only print if temp is not 0 (readfailure)
-		lcdprint(0, 0, "Temp:");
-		lcdprint(6, 0, String(temperature));
-		lcdwrite(8, 0, 0);
-		lcdwrite(9, 0, 'C');
-		lcdprint(0, 1, "Plant is");
-		lcdwrite(9, 1, 1);
-	}
-}
-
 // Sonar sensor + LCD activation
 //#define Trigger_Pin 2
 //#define Echo_Pin 3
@@ -128,43 +99,45 @@ void setRBGled(int red, int green, int blue) {
 }
 
 void SerialWatch() {
-	if (String(Serial.read()) == "setting:") { //https://forum.arduino.cc/index.php?topic=78392.0
-		setRBGled(0, 255, 0);
-		lcdprint(0, 0, String(Serial.read()));
-	};
+	if (Serial.available() > 0) {
+		/*setRBGled(0, 255, 0);*/
+		char data = Serial.read();
+		char str[2];
+		str[0] = data;
+		str[1] = '\0';
+		lcdprint(0, 0, str);
+	}
 	Serial.setTimeout(100);
+	//setRBGled(0, 0, 0);
 }
 
 void setup() {
 	Serial.begin(9600);
+
 	SerialWatch();
-	delay(500); // wait for data if any
-	//plants = EEPROM.read(0);
+	setRBGled(0, 255, 0);
+	//delay(500); // wait for data if any or something
 
-	//dhtArray = new DHT[7];
-	//for (unsigned int i = 0; i < sizeof(DHT_Pin); i++) {
-	//	dhtArray[i] = new dht(DHT_Pin[i], DHT_Type);
-	//};
+	// init DHT11 sensors
+	for (int i = 0; i < 5; i++) {
+		//Serial.print(i), Serial.print("\n");
+		dhtArray[i] = new DHT(DHT_Pin[i], DHT_Type); //define a new DHT at pin 11;
+		dhtArray[i]->begin();
+	};
 
-	//LCD
+	// init LCD
 	lcd.init();
 	lcdclearline(0);
 	lcdclearline(1);
 	lcd.createChar(0, LCDcharDegree);
 	lcd.createChar(1, LCDcharOKHand);
 	lcd.backlight(); // or lcd.noBacklight to force off
+	lcdprint(15, 1, "+");
 
 	//RBGled https://howtomechatronics.com/tutorials/arduino/how-to-use-a-rgb-led-with-arduino/
 	pinMode(R_Pin, OUTPUT);
 	pinMode(G_Pin, OUTPUT);
 	pinMode(B_Pin, OUTPUT);
-
-	//DHT11
-	for (int i = 0; i < 5; i++) {
-		//Serial.print(i), Serial.print("\n");
-		dhtArray[i] = new DHT(DHT_Pin[i], DHT_Type); //define a new DHT at pin 11;
-		dhtArray[i]->begin();
-	};
 }
 
 unsigned long lasttime = 0;

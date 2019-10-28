@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PlantCare.ino" />
+    <None Include="LCD.ino" />
   </ItemGroup>
 </Project>

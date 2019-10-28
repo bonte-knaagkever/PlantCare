@@ -9,18 +9,35 @@ print("COM connection success!")
 #serialread = arduino.readline() #read once
 time.sleep(1)
 
+lastmodified = []
+
 def sendserial():
     connection = MySQLdb.connect('localhost', 'root', '', 'plantcare')
     with connection.cursor() as cursor: # https://pynative.com/python-mysql-select-query-to-fetch-data/
         result = cursor.execute("SELECT * from `settings`")
         records = cursor.fetchall()
 
+        #nrows = cursor.rowcount
+        #global lastmodified
+
         for row in records:
             dbplantid = row[0]
+            dblastmodified = row[1]
+            #dbplantname = row[2]
             dbtemperature = row[3]
             dblight = row[4]
             dbhumidity = row[5]
             dbsoilmoisture = row[6]
+            
+            #lastmodified.append(dblastmodified)
+
+            #if lastmodified[dbplantid] <= row[1]:
+            #    serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
+            #    arduino.write(serialsend.encode('utf-8'))
+            #    print("Sent serial data" + serialsend)
+            #    lastmodified = dblastmodified
+            #    #clear array
+            #    lastmodified = [range(cursor.rowcount)]
 
             # https://www.programiz.com/python-programming/methods/built-in/open
             if not os.path.exists("lastmodified.txt"):
@@ -29,17 +46,21 @@ def sendserial():
             with open("lastmodified.txt", 'r+') as f: 
                 lines = f.readlines()
             f.close()
-            if any (str(row[0]) + "=" in t for t in lines): # https://stackoverflow.com/questions/19211828/python-using-any-and-all-to-check-if-a-list-contains-one-set-of-values-or-an
+
+            if any (str(dbplantid) + "=" in t for t in lines):
+
+
+            if any (str(dbplantid) + "=" in t for t in lines): # https://stackoverflow.com/questions/19211828/python-using-any-and-all-to-check-if-a-list-contains-one-set-of-values-or-an
                 for line in lines:
-                    if line.startswith(str(row[0])):
+                    if line.startswith(str(dbplantid)):
                         if int(line.strip("\n").split('=', 1)[1]) < row[1]:
                             with open("lastmodified.txt", 'w') as f:
                                 for row in records:
                                     f.write(line.replace(line, ""))
-                                    f.write(str(row[0]) + "=" + str(row[1]) + "\n")
+                                    f.write(str(dbplantid) + "=" + str(dblastmodified) + "\n")
                             f.close()
                             serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
-                            arduino.write(serialsend.encode())
+                            arduino.write(serialsend.encode('utf-8'))
                             print("Sent serial data" + serialsend)
                             print(line.strip("\n").split('=', 1))
                             with open("lastmodified.txt", 'r') as f:
@@ -47,11 +68,13 @@ def sendserial():
                             f.close()
             else:
                 with open("lastmodified.txt", 'a') as f:
-                    f.write(str(row[0]) + "=" + str(row[1]) + "\n")
+                    f.write(str(dbplantid) + "=" + str(dbplantid) + "\n")
                 f.close()
                 serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
-                arduino.write(serialsend.encode())
+                arduino.write(serialsend.encode('utf-8'))
                 print("Sent serial data" + serialsend)
+
+            
             #time.sleep(0.5)
     cursor.close()
 

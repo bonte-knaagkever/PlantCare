@@ -1,0 +1,57 @@
+:root {
+    /*vars*/
+    --main-barheight: 40px;
+}
+
+html, body {
+    background-color: #34464C;
+    color: white !important;
+}
+
+    body * {
+    }
+
+.main-header {
+    background-color: #3CBC8D;
+}
+
+    .main-header .navbar {
+    }
+
+
+.main-sidebar {
+}
+
+    .main-sidebar .sidebar-logo {
+        background-color: #35A57A;
+        max-height: var(--main-barheight);
+    }
+
+    .main-sidebar h1 {
+        font-size: calc(var(--main-barheight) - 15px);
+        line-height: var(--main-barheight);
+    }
+
+    .main-sidebar .sidebar-menu a {
+    }
+
+li {
+}
+
+.main-content {
+    padding: 10px;
+}
+
+table {
+}
+
+form {
+
+}
+
+.main-footer {
+    background-color: #3CBC8D;
+}
+
+    .main-footer div {
+    }

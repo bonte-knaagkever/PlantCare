@@ -1,0 +1,148 @@
+:root {
+    /*vars*/
+    --main-barheight: 40px;
+}
+
+html, body {
+    margin: auto;
+    background-color: #34464C;
+    color: #ffffff;
+    display: block;
+    font-family: 'Source Sans Pro','Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-weight: 400;
+    overflow-x: auto;
+    overflow-y: auto;
+    min-height: 100%;
+}
+
+    body * {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+.main-header {
+    height: var(--main-barheight);
+    background-color: #3CBC8D;
+    position: relative;
+    margin-left: 200px;
+    top: 0
+}
+
+    .main-header .navbar {
+        padding: 11px;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%); /* to center vertically https://www.w3schools.com/howto/howto_css_center-vertical.asp */
+    }
+
+/*.sidebar {
+    background-color: purple;
+    position: absolute;
+    padding-top: 50px;
+    width: 200px;
+    min-height: 100%;
+}*/
+
+.main-sidebar {
+    background-color: #2B3B3F;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    top: 0;
+    width: 200px; /* change with js to 200px*/
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    z-index: 1;
+}
+
+    .main-sidebar .sidebar-logo {
+        background-color: #35A57A;
+        max-height: var(--main-barheight);
+    }
+
+    .main-sidebar h1 {
+        font-size: calc(var(--main-barheight) - 15px);
+        line-height: var(--main-barheight);
+        text-align: center;
+        margin: 0px;
+        /*color: #527755;*/
+    }
+
+    .main-sidebar .sidebar-menu a {
+        width: 100%
+    }
+
+li {
+    display: list-item;
+    text-align: -webkit-match-parent;
+}
+
+.main-content {
+    padding: 10px;
+    margin-left: 200px;
+    /*min-height: 100%;*/
+    height: auto;
+    width: auto;
+    min-height: calc(100vh - var(--main-barheight)); /* change this dynamically, vh = viewport height https://stackoverflow.com/questions/11516291/css-get-height-of-screen-resolution*/
+    overflow-x: auto;
+}
+
+table {
+    text-align: center;
+    margin: 0px;
+    /*background-color: #505050;*/
+    padding: 5px;
+    margin: 5px;
+    border: 2px solid #e2e2e2;
+    border-radius: 5px;
+}
+
+form {
+    /*background-color: #505050;*/
+    padding: 5px;
+    margin: 5px;
+    border: 2px solid #e2e2e2;
+    border-radius: 5px;
+}
+
+.main-footer {
+    background-color: #3CBC8D;
+    margin-left: 200px;
+    height: var(--main-barheight);
+    width: auto;
+    position: relative;
+}
+
+    .main-footer div {
+        margin-left: 10px;
+        display: inline-block;
+        position: absolute;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%); /* to center vertically https://www.w3schools.com/howto/howto_css_center-vertical.asp */
+    }
+
+@media (max-width: 700px) {
+    .main-header {
+        margin-left: 0px;
+    }
+
+    .narbar {
+        margin: 0;
+    }
+
+    .main-sidebar {
+        width: 0px; /* change with js to 200px*/
+        height: 100%;
+    }
+
+    .main-content {
+        margin-left: 0px;
+    }
+
+    .main-footer {
+        margin-left: 0px;
+    }
+}

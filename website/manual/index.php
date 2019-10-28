@@ -5,10 +5,12 @@
 	<title>Data from PlantCare db</title>
 	<description></description>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <script type="text/javascript" src="./scripts/script.js"></script>
 <!-- https://www.youtube.com/watch?v=HtTG5Kf_mTA 
 	Copy the data to another external server: https://docs.microsoft.com/en-us/sql/relational-databases/replication/replication-tutorials?redirectedfrom=MSDN&view=sql-server-ver15	
+	Color palette : https://coolors.co/151526-204c39-527755-87a330-a1c349
 -->
 <body>
 	<div class="wrapper">
