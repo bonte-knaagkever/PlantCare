@@ -22,9 +22,6 @@ def sendserial():
         result = cursor.execute("SELECT * from `settings`")
         records = cursor.fetchall()
 
-        #nrows = cursor.rowcount
-        #global lastmodified
-
         for row in records:
             dbplantid = row[0]
             dblastmodified = row[1]
@@ -34,16 +31,6 @@ def sendserial():
             dbhumidity = row[5]
             dbsoilmoisture = row[6]
             
-            #lastmodified.append(dblastmodified)
-
-            #if lastmodified[dbplantid] <= row[1]:
-            #    serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
-            #    arduino.write(serialsend.encode('utf-8'))
-            #    print("Sent serial data" + serialsend)
-            #    lastmodified = dblastmodified
-            #    #clear array
-            #    lastmodified = [range(cursor.rowcount)]
-
             # https://www.programiz.com/python-programming/methods/built-in/open
             
             with open("lastmodified.txt", 'r+') as f: 
@@ -59,7 +46,7 @@ def sendserial():
                                       f.write(line.replace(line, ""))
                                       f.write(str(row[0]) + "=" + str(row[1]) + "\n")
                             f.close()
-                            serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
+                            serialsend = "setting: " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
                             arduino.write(serialsend.encode('utf-8'))
                             print(serialsend)
                             with open("lastmodified.txt", 'r') as f:
@@ -76,7 +63,7 @@ def sendserial():
                                     f.write(line.replace(line, ""))
                                     f.write(str(row[0]) + "=" + str(row[1]) + "\n")
                             f.close()
-                            serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
+                            serialsend = "setting: " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
                             arduino.write(serialsend.encode('utf-8'))
                             print(serialsend)
                             with open("lastmodified.txt", 'r') as f:
@@ -84,11 +71,10 @@ def sendserial():
                             f.close()
 
             else:
-                print("write")
                 with open("lastmodified.txt", 'a') as f:
                     f.write(str(dbplantid) + "=" + str(dblastmodified) + "\n")
                 f.close()
-                serialsend = "setting:" + " " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
+                serialsend = "setting: " + str(dbplantid) + " " + str(dbtemperature) + " " + str(dblight) + " " + str(dbhumidity) + " " + str(dbsoilmoisture)
                 arduino.write(serialsend.encode('utf-8'))
                 print(serialsend)
             time.sleep(0.5)
@@ -98,33 +84,39 @@ def sendserial():
 
 def readserial():
 	serialread = arduino.readline()
-	values = serialread.split(b" ")
-
-	#print(values[1],values[2],values[3],values[4])
-	print("lol")
+	values = serialread.decode("utf-8").strip("\r\n").split(".")
 
 	with open("serialread.txt", 'a') as f:
-		f.write(str(serialread))
+		f.write(serialread.decode("utf-8").strip("\r\n") + "\n")
 	f.close()
 
-	#temperature = values[2] #values[0] = "sensordata: ", values[1] = "plantnr"
-	#light = values[3]
-	#humidity = values[4]
-	#soilmoisture = values[5]
+	if values[0] == "Read fail": #values[0] contains a message (if there is one)
+		print("++++++++++ SENSOR ERROR / SENSOR NOT CONNECTED TO PLANT '" + str(int(values[2])) + "' ++++++++++")
+	elif values[0] == "":
+	    plantid = values[2]
+	    temperature = values[3]
+	    light = values[4]
+	    humidity = values[5]
+	    soilmoisture = values[6]   
+	    
 
-	#connection = MySQLdb.connect('localhost', 'root', '', 'plantcare')
+	    connection = MySQLdb.connect('localhost', 'root', '', 'plantcare')
 
-	#with connection.cursor() as cursor:
-	#	cursor.execute("""INSERT INTO sensordata (temperature, light, humidity, soilmoisture) VALUES(%s,%s,%s,%s)""", (temperature, light, humidity, soilmoisture))
-	#	connection.commit()
-	#	cursor.close()
-	#print("Read serial data " + str(datetime.datetime.now()))
+	    with connection.cursor() as cursor:
+	    	cursor.execute("""CREATE TABLE IF NOT EXISTS plant_{plantid} (date DATETIME DEFAULT CURRENT_TIMESTAMP, temperature INT, light INT, humidity INT, soilmoisture INT)""".format(plantid=int(plantid)))
+	    	cursor.execute("""INSERT INTO plant_{plantid} (temperature, light, humidity, soilmoisture) VALUES(%s,%s,%s,%s)""".format(plantid=int(plantid)), (temperature, light, humidity, soilmoisture))
+	    	connection.commit()
+	    	cursor.close()
+	    print("Read/sent serial data - " + str(datetime.datetime.now()) + " - DATA: " + plantid, temperature, light, humidity, soilmoisture)
+	elif values[0] == "CONNECTED":
+		print("?????????? CONNECTED ??????????")
+	else:
+		print("!!!!!!!!!! UNKNOWN ERROR !!!!!!!!!!")
 
 while 1:
-
     sendserial() # https://stackoverflow.com/questions/5771925/python-how-to-get-notifications-for-mysql-database-changes
     time.sleep(0.1)
-    #readserial()
+    readserial()
     time.sleep(0.1)
 
 #Multiple options to do a loop https://stackoverflow.com/questions/34589347/run-python-script-every-10-seconds, cron is also an option or https://askubuntu.com/questions/396654/how-to-run-a-python-program-in-the-background-even-after-closing-the-terminal

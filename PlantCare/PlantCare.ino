@@ -17,7 +17,8 @@ int light;
 int humidity; // 0-100%
 int soilmoisture;
 
-int plants = 5;
+int serialreceivedplantnr[10]; //set to max 10 possible plants
+int plants = 10;
 
 // RGBled
 constexpr auto R_Pin = 7;
@@ -25,9 +26,9 @@ constexpr auto G_Pin = 6;
 constexpr auto B_Pin = 5;
 
 // Temp/humidity sensor (DHT11)
-const int DHT_Pin[5] = { 8, 9, 10, 11, 12 };
+const int DHT_Pin[10] = { 8 };
 const int DHT_Type = DHT11;
-DHT* dhtArray[5]; //max 5 DHT sensors
+DHT* dhtArray[10]; //max 10 DHT sensors
 
 // LDR
 constexpr auto LDR_Pin = 3;
@@ -55,10 +56,10 @@ byte LCDcharOKHand[] = {
   B01110
 };
 
-void Sensors(int plantnr) {
-	temperature = dhtArray[plantnr]->readTemperature() - 1;
-	light = analogRead(LDR_Pin);
-	humidity = dhtArray[plantnr]->readHumidity();
+void Sensors(int plantid) {
+	temperature = dhtArray[plantid]->readTemperature() - 1;
+	light = 0; //analogRead(LDR_Pin);
+	humidity = dhtArray[plantid]->readHumidity();
 	soilmoisture = 0;
 };
 
@@ -92,20 +93,37 @@ void Sensors(int plantnr) {
 //	prevdistance = distance;
 //}
 
-void setRBGled(int red, int green, int blue) { 
+void setRBGled(int red, int green, int blue) {
 	analogWrite(R_Pin, red);
 	analogWrite(G_Pin, green);
 	analogWrite(B_Pin, blue);
 }
 
+void SerialSettings() {
+	while (Serial.available() > 0) {
+		// neem het eerste getal als id, tweede als temp, derde als etc. zodat het volgende id op de tweede regel van de array (standaard 5x10 (5 gegevens, 10 planten max)) komt
+		// lees de array ofzo idk
+		// https://forum.arduino.cc/index.php?topic=396450.0
+
+		//char data = Serial.read();
+		//char str[2];
+		//str[0] = data;
+		//str[1] = '\0';
+		//lcdprint(0, 0, String(serialreceivedplantnr[1]));
+	}
+	Serial.setTimeout(100);
+	//setRBGled(0, 0, 0);
+}
+
 void SerialWatch() {
 	if (Serial.available() > 0) {
 		/*setRBGled(0, 255, 0);*/
-		char data = Serial.read();
-		char str[2];
-		str[0] = data;
-		str[1] = '\0';
-		lcdprint(0, 0, str);
+		char received = Serial.read();
+		//char data = Serial.read();
+		//char str[2];
+		//str[0] = data;
+		//str[1] = '\0';
+		lcdprint(0, 0, String(received));
 	}
 	Serial.setTimeout(100);
 	//setRBGled(0, 0, 0);
@@ -113,14 +131,14 @@ void SerialWatch() {
 
 void setup() {
 	Serial.begin(9600);
-	Serial.print("START");
+	Serial.println("CONNECTED");
 
-	SerialWatch();
+	SerialSettings();
 	setRBGled(0, 255, 0);
 	//delay(500); // wait for data if any or something
 
-	// init DHT11 sensors
-	for (int i = 0; i < 5; i++) {
+	// init amount:plants DHT11 sensors
+	for (int i = 0; i < plants; i++) {
 		//Serial.print(i), Serial.print("\n");
 		dhtArray[i] = new DHT(DHT_Pin[i], DHT_Type); //define a new DHT at pin 11;
 		dhtArray[i]->begin();
@@ -146,42 +164,32 @@ unsigned long lasttime = 0;
 void loop() {
 	//Scheduler.startLoop(LCDwatch);
 	SerialWatch();
-	if (millis() >= lasttime + 10000) {
+	if (millis() >= lasttime + 5000) {
 		lasttime = millis();
 		//setRBGled(0, 255, 0);
-		Sensors(0);
-		
-		//Serial.print("sensordata:");
-		//Serial.print(" ");
-		//Serial.print(plantnr);
-		//Serial.print(" ");
-		//Serial.print(temperature);
-		//Serial.print(" ");
-		//Serial.print(light);
-		//Serial.print(" ");
-		//Serial.print(humidity);
-		//Serial.print(" ");
-		//Serial.print(soilmoisture);
-		//Serial.println();
-		
-		//for (unsigned int plantnr = 0; plantnr < sizeof(plants); plantnr++) {
-		//	Sensors(plantnr);
-		//	Serial.print("sensordata:");
-		//	Serial.print(" ");
-		//	Serial.print(plantnr);
-		//	Serial.print(" ");
-		//	Serial.print(temperature);
-		//	Serial.print(" ");
-		//	Serial.print(light);
-		//	Serial.print(" ");
-		//	Serial.print(humidity);
-		//	Serial.print(" ");
-		//	Serial.print(soilmoisture);
-		//	Serial.println();
-		//}
+
+		for (unsigned int plantid = 0; plantid < plants; plantid++) {
+			Sensors(plantid);
+			if (!isnan(temperature)) {
+				Serial.print(".");
+				Serial.print("sensordata");
+				Serial.print(".");
+				Serial.print(plantid);
+				Serial.print(".");
+				Serial.print(temperature);
+				Serial.print(".");
+				Serial.print(light);
+				Serial.print(".");
+				Serial.print(humidity);
+				Serial.print(".");
+				Serial.print(soilmoisture);
+				Serial.println();
+			}
+			else Serial.println("error");
+			delay(1500); //wait to prevent readfails
+		}
 
 		//LCDcontents();
 		//setRBGled(255, 0, 0);
 	}
-	delay(900);
 }
